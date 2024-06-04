@@ -37,6 +37,8 @@ jobs:
           sheet_name=${{ steps.extract.outputs.sheet_name }}
           csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/gviz/tq?tqx=out:csv&sheet=${sheet_name}"
           curl -o template.csv "$csv_url"
+          ls -l template.csv  # Check if the file is downloaded
+          cat template.csv    # Print the content for debugging
 
       - name: Commit CSV to Repository
         run: |
@@ -45,6 +47,7 @@ jobs:
           git add template.csv
           git commit -m "Add updated template CSV file"
           git push
+          git log -1  # Check the latest commit for debugging
 #
 #      - name: Generate CEDAR Template and Documentation
 #        run: |

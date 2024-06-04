@@ -21,24 +21,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Extract Google Sheet ID and Sheet Name
-        id: extract
-        run: |
-          sheet_url="${{ github.event.inputs.google_sheet_url }}"
-          # Extract the Spreadsheet ID and Sheet Name from the provided URL
-          sheet_id=$(echo "$sheet_url" | grep -oP '(?<=/d/)[^/]+')
-          sheet_name=$(echo "$sheet_url" | grep -oP '(?<=&sheet=)[^&]+')
-          echo "::set-output name=sheet_id::$sheet_id"
-          echo "::set-output name=sheet_name::$sheet_name"
-
       - name: Download Google Sheet as CSV
         run: |
-          sheet_id=${{ steps.extract.outputs.sheet_id }}
-          sheet_name=${{ steps.extract.outputs.sheet_name }}
-          csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/gviz/tq?tqx=out:csv&sheet=${sheet_name}"
-          curl -o template.csv "$csv_url"
-          ls -l template.csv  # Check if the file is downloaded
-          cat template.csv    # Print the content for debugging
+          curl -o template.csv "${{ github.event.inputs.google_sheet_url }}"
 
       - name: Commit CSV to Repository
         run: |
@@ -47,7 +32,6 @@ jobs:
           git add template.csv
           git commit -m "Add updated template CSV file"
           git push
-          git log -1  # Check the latest commit for debugging
 #
 #      - name: Generate CEDAR Template and Documentation
 #        run: |

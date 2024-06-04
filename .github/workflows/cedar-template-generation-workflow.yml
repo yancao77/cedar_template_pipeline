@@ -1,1 +1,90 @@
 
+name: CEDAR Template GitHub Pipeline
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      google_sheet_url:
+        description: 'Google Sheet URL for the CEDAR Template'
+        required: true
+
+jobs:
+  cedar_integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Extract Google Sheet ID and Sheet Name
+        id: extract
+        run: |
+          sheet_url="${{ github.event.inputs.google_sheet_url }}"
+          # Extract the Spreadsheet ID and Sheet Name from the provided URL
+          sheet_id=$(echo "$sheet_url" | grep -oP '(?<=/d/)[^/]+')
+          sheet_name=$(echo "$sheet_url" | grep -oP '(?<=&sheet=)[^&]+')
+          echo "::set-output name=sheet_id::$sheet_id"
+          echo "::set-output name=sheet_name::$sheet_name"
+
+      - name: Download Google Sheet as CSV
+        run: |
+          sheet_id=${{ steps.extract.outputs.sheet_id }}
+          sheet_name=${{ steps.extract.outputs.sheet_name }}
+          csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/gviz/tq?tqx=out:csv&sheet=${sheet_name}"
+          curl -o template.csv "$csv_url"
+
+      - name: Commit CSV to Repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add template.csv
+          git commit -m "Add updated template CSV file"
+          git push
+#
+#      - name: Generate CEDAR Template and Documentation
+#        run: |
+#          java -jar cedar-cli.jar generate-template filename.csv -o template.json
+#          java -jar cedar-cli.jar generate-docs template.json -o documentation.md
+#
+#      - name: Commit CEDAR Template
+#        run: |
+#          git add template.json
+#          git commit -m "Add generated CEDAR template"
+#          git push
+#
+#      - name: Push Template to CEDAR
+#        run: |
+#          java -jar cedar-cli.jar push-template template.json
+#
+#      - name: Commit Documentation to gh_pages
+#        run: |
+#          git checkout gh-pages
+#          git add documentation.md
+#          git commit -m "Update documentation"
+#          git push origin gh-pages
+#
+#      - name: Update README.md
+#        run: |
+#          echo "Links to resources:" > README.md
+#          echo "Google Sheet: ${{ github.event.inputs.google_sheet_url }}" >> README.md
+#          echo "CEDAR Template in Repo: ${{ github.repository }}/blob/main/template.json" >> README.md
+#          echo "CEDAR Template in CEDAR: [CEDAR Template URL]" >> README.md
+#          echo "Documentation URL: ${{ github.repository }}/blob/gh-pages/documentation.md" >> README.md
+#          git add README.md
+#          git commit -m "Update README with resource links"
+#          git push
+#
+#      - name: Create Release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.run_number }}
+#          release_name: Release ${{ github.run_number }}
+#          draft: false
+#          prerelease: false

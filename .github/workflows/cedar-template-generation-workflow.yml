@@ -23,32 +23,34 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-#      - name: Download Google Sheet as CSV
-#        run: |
-#          curl -o template.csv "${{ github.event.inputs.google_sheet_url }}"
-
-      - name: Extract Google Sheet ID and Sheet Name
-        id: extract
-        run: |
-          sheet_url="${{ github.event.inputs.google_sheet_url }}"
-          sheet_id=$(echo "$sheet_url" | grep -oP '(?<=/d/)[^/]+')
-          echo "Extracted sheet_id: $sheet_id"
-          sheet_name=$(echo "$sheet_url" | grep -oP '(?<=gid=)\d+')
-          if [ -z "$sheet_name" ]; then
-          echo "Sheet name not found, setting default"
-          sheet_name="Sheet1"
-          fi
-          echo "Extracted sheet_name: $sheet_name"
-          echo "sheet_id=$sheet_id" >> $GITHUB_ENV
-          echo "sheet_name=$sheet_name" >> $GITHUB_ENV
-
       - name: Download Google Sheet as CSV
         run: |
-          csv_url="https://docs.google.com/spreadsheets/d/${{ env.sheet_id }}/gviz/tq?tqx=out:csv&sheet=${{ env.sheet_name }}"
-          echo "Downloading CSV from: $csv_url"
-          curl -o template.csv "$csv_url"
+          curl -o template.csv "${{ github.event.inputs.google_sheet_url }}"
           echo "Downloaded CSV file content:"
           cat template.csv
+
+#      - name: Extract Google Sheet ID and Sheet Name
+#        id: extract
+#        run: |
+#          sheet_url="${{ github.event.inputs.google_sheet_url }}"
+#          sheet_id=$(echo "$sheet_url" | grep -oP '(?<=/d/)[^/]+')
+#          echo "Extracted sheet_id: $sheet_id"
+#          sheet_name=$(echo "$sheet_url" | grep -oP '(?<=gid=)\d+')
+#          if [ -z "$sheet_name" ]; then
+#          echo "Sheet name not found, setting default"
+#          sheet_name="Sheet1"
+#          fi
+#          echo "Extracted sheet_name: $sheet_name"
+#          echo "sheet_id=$sheet_id" >> $GITHUB_ENV
+#          echo "sheet_name=$sheet_name" >> $GITHUB_ENV
+#
+#      - name: Download Google Sheet as CSV
+#        run: |
+#          csv_url="https://docs.google.com/spreadsheets/d/${{ env.sheet_id }}/gviz/tq?tqx=out:csv&sheet=${{ env.sheet_name }}"
+#          echo "Downloading CSV from: $csv_url"
+#          curl -o template.csv "$csv_url"
+#          echo "Downloaded CSV file content:"
+#          cat template.csv
 
       - name: Commit CSV to Repository
         env:

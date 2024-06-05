@@ -4,9 +4,13 @@ name: CEDAR Template GitHub Pipeline
 on:
   workflow_dispatch:  # Manual trigger
     inputs:
-      google_sheet_url:
-        description: 'Google Sheet URL for the CEDAR Template'
+      google_sheet_name:
+        description: 'Google Sheet Name for the CEDAR Template'
         required: true
+      google_sheet_id:
+        description: 'Google Sheet ID for the CEDAR Template'
+        required: false
+        default: '1Kwe4PFodciXo-XDX2bHN8F-CRAmopguoI9YKFX6piaQ'
 
 jobs:
   cedar_integration:
@@ -25,32 +29,14 @@ jobs:
 
       - name: Download Google Sheet as CSV
         run: |
-          curl -o template.csv "${{ github.event.inputs.google_sheet_url }}"
+          sheet_name="${{ github.event.inputs.google_sheet_name }}"
+          sheet_id="${{ github.event.inputs.google_sheet_id }}"
+          encoded_sheet_name=$(echo "${sheet_name}" | sed 's/ /%20/g')
+          csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/gviz/tq?tqx=out:csv&sheet=${encoded_sheet_name}"
+          echo "Downloading CSV from: $csv_url"
+          curl -o template.csv "$csv_url"
           echo "Downloaded CSV file content:"
           cat template.csv
-
-#      - name: Extract Google Sheet ID and Sheet Name
-#        id: extract
-#        run: |
-#          sheet_url="${{ github.event.inputs.google_sheet_url }}"
-#          sheet_id=$(echo "$sheet_url" | grep -oP '(?<=/d/)[^/]+')
-#          echo "Extracted sheet_id: $sheet_id"
-#          sheet_name=$(echo "$sheet_url" | grep -oP '(?<=gid=)\d+')
-#          if [ -z "$sheet_name" ]; then
-#          echo "Sheet name not found, setting default"
-#          sheet_name="Sheet1"
-#          fi
-#          echo "Extracted sheet_name: $sheet_name"
-#          echo "sheet_id=$sheet_id" >> $GITHUB_ENV
-#          echo "sheet_name=$sheet_name" >> $GITHUB_ENV
-#
-#      - name: Download Google Sheet as CSV
-#        run: |
-#          csv_url="https://docs.google.com/spreadsheets/d/${{ env.sheet_id }}/gviz/tq?tqx=out:csv&sheet=${{ env.sheet_name }}"
-#          echo "Downloading CSV from: $csv_url"
-#          curl -o template.csv "$csv_url"
-#          echo "Downloaded CSV file content:"
-#          cat template.csv
 
       - name: Commit CSV to Repository
         env:

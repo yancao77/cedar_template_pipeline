@@ -53,7 +53,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add template.csv
-          git commit -m "Add updated template CSV file"
+          git diff --quiet && git diff --staged --quiet || git commit -m "Add updated template CSV file"
           git push
 
 
@@ -73,8 +73,9 @@ jobs:
           sed -i 's|<CEDAR_TEMPLATE_REPO_URL>|'"$template_url"'|g' README.md
           sed -i 's|<CEDAR_TEMPLATE_CEDAR_URL>|'"$template_folder_url"'|g' README.md
           sed -i 's|<DOCUMENTATION_URL>|'"$docs_url"'|g' README.md
+          cat README.md
           git add README.md
-          git commit -m "Update README.md with new template and documentation links"
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update README.md with new template and documentation links"
           git push origin main
 
       - name: Create GitHub Release

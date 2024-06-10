@@ -32,14 +32,14 @@ jobs:
 
       - name: Download Google Sheet as CSV
         run: |
-          sheet_id="${{ github.event.inputs.google_sheet_id }}"
-          tab_id="${{ github.event.inputs.google_sheet_tab_id }}"
-#          encoded_sheet_name=$(echo "${sheet_name}" | sed 's/ /%20/g')
-          csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/export?format=csv&gid=${tab_id}"
-          echo "Downloading CSV from: $csv_url"
-          curl -o template.csv "$csv_url"
-          echo "Downloaded CSV file content:"
-          cat template.csv
+               sheet_id="${{ github.event.inputs.google_sheet_id }}"
+               tab_id="${{ github.event.inputs.google_sheet_tab_id }}"
+          #          encoded_sheet_name=$(echo "${sheet_name}" | sed 's/ /%20/g')
+               csv_url="https://docs.google.com/spreadsheets/d/${sheet_id}/export?format=csv&gid=${tab_id}"
+               echo "Downloading CSV from: $csv_url"
+               curl -o template.csv "$csv_url"
+               echo "Downloaded CSV file content:"
+               cat template.csv
 
       - name: Commit CSV to Repository
         env:

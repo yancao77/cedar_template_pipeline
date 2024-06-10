@@ -11,6 +11,15 @@ on:
         description: 'Google Sheet ID for the CEDAR Template'
         required: false
         default: '1Kwe4PFodciXo-XDX2bHN8F-CRAmopguoI9YKFX6piaQ'
+      cedar_template_path:
+        description: 'Path to the local CEDAR Template JSON-LD file'
+        required: true
+      local_docs_path:
+        description: 'Path to the local documentation file'
+        required: true
+      template_folder_id:
+        description: 'Template ID in CEDAR'
+        required: true
 
 jobs:
   cedar_integration:
@@ -47,46 +56,64 @@ jobs:
           git add template.csv
           git commit -m "Add updated template CSV file"
           git push
-#
-#      - name: Generate CEDAR Template and Documentation
-#        run: |
-#          java -jar cedar-cli.jar generate-template filename.csv -o template.json
-#          java -jar cedar-cli.jar generate-docs template.json -o documentation.md
-#
-#      - name: Commit CEDAR Template
-#        run: |
-#          git add template.json
-#          git commit -m "Add generated CEDAR template"
-#          git push
-#
-#      - name: Push Template to CEDAR
-#        run: |
-#          java -jar cedar-cli.jar push-template template.json
-#
-#      - name: Commit Documentation to gh_pages
-#        run: |
-#          git checkout gh-pages
-#          git add documentation.md
-#          git commit -m "Update documentation"
-#          git push origin gh-pages
-#
-#      - name: Update README.md
-#        run: |
-#          echo "Links to resources:" > README.md
-#          echo "Google Sheet: ${{ github.event.inputs.google_sheet_url }}" >> README.md
-#          echo "CEDAR Template in Repo: ${{ github.repository }}/blob/main/template.json" >> README.md
-#          echo "CEDAR Template in CEDAR: [CEDAR Template URL]" >> README.md
-#          echo "Documentation URL: ${{ github.repository }}/blob/gh-pages/documentation.md" >> README.md
-#          git add README.md
-#          git commit -m "Update README with resource links"
-#          git push
-#
-#      - name: Create Release
+
+
+      - name: Commit Template JSON-LD to Repository
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          cp ${{ github.event.inputs.cedar_template_path }} template.json
+          git add template.json
+          git commit -m "Add CEDAR template JSON-LD file"
+          git push
+
+      - name: Commit Documentation to Repository
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git checkout gh_pages
+          cp ${{ github.event.inputs.local_docs_path }} documentation.md
+          git add documentation.md
+          git commit -m "Add CEDAR template documentation"
+          git push origin gh_pages
+          git checkout main  # Switch back to main branch
+
+
+      - name: Update README.md
+        run: |
+          template_folder_id="${{ github.event.inputs.template_folder_id }}"
+          sheet_url="https://docs.google.com/spreadsheets/d/${{ github.event.inputs.google_sheet_id }}/edit#gid=${{ github.event.inputs.google_sheet_name }}"
+          repo_url="https://github.com/${{ github.repository }}"
+          docs_url="${repo_url}/blob/gh_pages/documentation.md"
+          echo "Updating README.md with the following information:"
+          echo "Google Sheet URL: $sheet_url"
+          echo "CEDAR Template in Repo: template.json"
+          echo "CEDAR Template in CEDAR: https://cedar.metadatacenter.org/dashboard?folderId=$template_folder_id"
+          echo "Documentation URL: $docs_url"
+          sed -i 's|<GOOGLE_SHEET_URL>|'"$sheet_url"'|g' README.md
+          sed -i 's|<CEDAR_TEMPLATE_REPO_URL>|template.json|g' README.md
+          sed -i 's|<CEDAR_TEMPLATE_CEDAR_URL>|https://cedar.metadatacenter.org/dashboard?folderId=$template_folder_id|g' README.md
+          sed -i 's|<DOCUMENTATION_URL>|'"$docs_url"'|g' README.md
+          git add README.md
+          git commit -m "Update README.md with new template and documentation links"
+          git push origin main
+
+#      - name: Create GitHub Release
 #        uses: actions/create-release@v1
 #        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 #        with:
-#          tag_name: ${{ github.run_number }}
-#          release_name: Release ${{ github.run_number }}
+#          tag_name: "v1.0.0" # Update this as needed
+#          release_name: "CEDAR Template Release v1.0.0"
+#          body: |
+#            - Google Sheet: [${{ steps.extract.outputs.sheet_name }}]($sheet_url)
+#            - CEDAR Template in Repo: [template.json](template.json)
+#            - CEDAR Template in CEDAR: [CEDAR Template]($cedar_template_url)
+#            - Documentation: [documentation.md]($docs_url)
 #          draft: false
 #          prerelease: false
+
+#      - name: Make Read-Only Copy of Google Sheet
+#        run: |
+#          echo "Making a read-only copy of the Google Sheet"
+#          # Additional steps to copy the Google Sheet and make it read-only could be added here if possible

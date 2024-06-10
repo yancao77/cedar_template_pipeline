@@ -1,4 +1,3 @@
-# cedar_template_pipeline
 # Project Documentation
 
 ## Google Sheet

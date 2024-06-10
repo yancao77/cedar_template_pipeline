@@ -17,9 +17,6 @@ on:
       release_tag:
         description: 'Tag name for the release'
         required: false
-      release_name:
-        description: 'Release name'
-        required: false
 
 jobs:
   cedar_integration:
@@ -78,14 +75,18 @@ jobs:
           git diff --quiet && git diff --staged --quiet || git commit -m "Update README.md with new template and documentation links"
           git push origin main
 
+      - name: Debug Inputs
+        run: |
+          echo "Release Tag: ${{ github.event.inputs.release_tag }}"
+
       - name: Create GitHub Release
-        if: ${{ github.event.inputs.release_tag && github.event.inputs.release_name }}
+        if: ${{ github.event.inputs.release_tag}}
         uses: actions/create-release@v1
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.release_tag }}
-          release_name: ${{ github.event.inputs.release_name }}
+          release_name: Release ${{ github.event.inputs.release_tag }} ${{ github.repository }}
           body: |
             - [Google Sheet]($sheet_url)
             - [CEDAR Template in Repo](RADxMetadataSpecification.json)

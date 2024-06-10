@@ -11,12 +11,6 @@ on:
         description: 'Google Sheet ID for the CEDAR Template'
         required: false
         default: '1Kwe4PFodciXo-XDX2bHN8F-CRAmopguoI9YKFX6piaQ'
-      cedar_template_path:
-        description: 'Path to the local CEDAR Template JSON-LD file'
-        required: true
-      local_docs_path:
-        description: 'Path to the local documentation file'
-        required: true
       template_folder_id:
         description: 'Template ID in CEDAR'
         required: true
@@ -58,41 +52,21 @@ jobs:
           git push
 
 
-      - name: Commit Template JSON-LD to Repository
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          cp ${{ github.event.inputs.cedar_template_path }} template.json
-          git add template.json
-          git commit -m "Add CEDAR template JSON-LD file"
-          git push
-
-      - name: Commit Documentation to Repository
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          git checkout gh_pages
-          cp ${{ github.event.inputs.local_docs_path }} documentation.md
-          git add documentation.md
-          git commit -m "Add CEDAR template documentation"
-          git push origin gh_pages
-          git checkout main  # Switch back to main branch
-
-
       - name: Update README.md
         run: |
-          template_folder_id="${{ github.event.inputs.template_folder_id }}"
           sheet_url="https://docs.google.com/spreadsheets/d/${{ github.event.inputs.google_sheet_id }}/edit#gid=${{ github.event.inputs.google_sheet_name }}"
           repo_url="https://github.com/${{ github.repository }}"
-          docs_url="${repo_url}/blob/gh_pages/documentation.md"
+          template_url = "${repo_url}/blob/${{ github.ref }}/RADxMetadataSpecification.json"
+          template_folder_url="https://cedar.metadatacenter.org/dashboard?folderId=${{ github.event.inputs.template_folder_id }}"
+          docs_url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/docs.md"
           echo "Updating README.md with the following information:"
           echo "Google Sheet URL: $sheet_url"
-          echo "CEDAR Template in Repo: template.json"
-          echo "CEDAR Template in CEDAR: https://cedar.metadatacenter.org/dashboard?folderId=$template_folder_id"
+          echo "CEDAR Template in Repo: $template_url"
+          echo "CEDAR Template in CEDAR: https://cedar.metadatacenter.org/dashboard?folderId='${{ github.event.inputs.template_folder_id }}'"
           echo "Documentation URL: $docs_url"
           sed -i 's|<GOOGLE_SHEET_URL>|'"$sheet_url"'|g' README.md
-          sed -i 's|<CEDAR_TEMPLATE_REPO_URL>|template.json|g' README.md
-          sed -i 's|<CEDAR_TEMPLATE_CEDAR_URL>|https://cedar.metadatacenter.org/dashboard?folderId=$template_folder_id|g' README.md
+          sed -i 's|<CEDAR_TEMPLATE_REPO_URL>|'"$template_url"'|g' README.md
+          sed -i 's|<CEDAR_TEMPLATE_CEDAR_URL>|'"$template_folder_url"'|g' README.md
           sed -i 's|<DOCUMENTATION_URL>|'"$docs_url"'|g' README.md
           git add README.md
           git commit -m "Update README.md with new template and documentation links"

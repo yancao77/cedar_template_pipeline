@@ -75,7 +75,7 @@ async function copyAndProtectSheet() {
                 description: 'Read-only copy',
                 warningOnly: false,
                 editors: {
-                  users: [bmir-radx@radx-template-pipeline.iam.gserviceaccount.com], 
+                  users: ['bmir-radx@radx-template-pipeline.iam.gserviceaccount.com'], 
                   groups: [], 
                   domainUsersCanEdit: false,
                 }

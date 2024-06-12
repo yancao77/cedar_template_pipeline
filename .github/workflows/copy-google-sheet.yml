@@ -38,6 +38,14 @@ jobs:
         run: |
           echo "$CLASP_CREDENTIALS" > ~/.clasprc.json
 
+      - name: Create .clasp.json if not exists
+        run: |
+          if [ ! -f .clasp.json ]; then
+            clasp create --type sheets --title "Google Sheets Script"
+          else
+            echo ".clasp.json exists, skipping project creation."
+          fi
+
       - name: Create .claspignore
         run: |
           echo "node_modules/" > .claspignore

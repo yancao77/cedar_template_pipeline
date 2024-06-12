@@ -46,6 +46,39 @@ jobs:
           else
             echo ".clasp.json exists, skipping project creation."
           fi
+          
+      - name: Print appsscript.json before modification
+        run: |
+          if [ -f appsscript.json ]; then
+            echo "appsscript.json content before modification:"
+            cat appsscript.json
+          else
+            echo "appsscript.json does not exist."
+          fi
+
+      - name: Ensure appsscript.json with OAuth Scopes
+        run: |
+          if [ -f appsscript.json ]; then
+            jq '. + {"oauthScopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.external_request", "https://www.googleapis.com/auth/script.projects", "https://www.googleapis.com/auth/script.webapp.deploy"]}' appsscript.json > tmp.json && mv tmp.json appsscript.json
+          else
+            echo '{
+              "timeZone": "America/New_York",
+              "dependencies": {},
+              "exceptionLogging": "STACKDRIVER",
+              "runtimeVersion": "V8",
+              "oauthScopes": [
+                "https://www.googleapis.com/auth/spreadsheets",
+                "https://www.googleapis.com/auth/script.external_request",
+                "https://www.googleapis.com/auth/script.projects",
+                "https://www.googleapis.com/auth/script.webapp.deploy"
+              ]
+            }' > appsscript.json
+          fi
+
+      - name: Print appsscript.json after modification
+        run: |
+          echo "appsscript.json content after modification:"
+          cat appsscript.json      
 
       - name: Create .claspignore
         run: |

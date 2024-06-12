@@ -1,9 +1,6 @@
 name: Deploy and Run Google Apps Script
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       google_spreadsheet_id:

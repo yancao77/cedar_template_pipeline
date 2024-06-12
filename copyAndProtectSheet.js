@@ -46,6 +46,17 @@ async function copyAndProtectSheet() {
       },
     });
 
+    // Get the properties of the new sheet to determine the number of rows and columns
+    const sheetPropertiesResponse = await sheets.spreadsheets.get({
+      spreadsheetId: spreadsheetId,
+      ranges: [],
+      includeGridData: false
+    });
+
+    const newSheet = sheetPropertiesResponse.data.sheets.find(sheet => sheet.properties.sheetId === newSheetId);
+    const rowCount = newSheet.properties.gridProperties.rowCount;
+    const columnCount = newSheet.properties.gridProperties.columnCount;
+
     // Protect the new sheet (make it read-only)
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId: spreadsheetId,
@@ -56,19 +67,23 @@ async function copyAndProtectSheet() {
               protectedRange: {
                 range: {
                   sheetId: newSheetId,
+                  startRowIndex: 0,
+                  endRowIndex: rowCount,
+                  startColumnIndex: 0,
+                  endColumnIndex: columnCount
                 },
                 description: 'Read-only copy',
                 warningOnly: false,
                 editors: {
-                  users: [],
-                  groups: [],
+                  users: [], // Ensure this is empty
+                  groups: [], // Ensure this is empty
                   domainUsersCanEdit: false,
-                },
-              },
-            },
-          },
-        ],
-      },
+                }
+              }
+            }
+          }
+        ]
+      }
     });
 
     console.log(`Copied and protected sheet: ${newSheetName}`);

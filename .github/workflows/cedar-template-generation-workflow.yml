@@ -114,6 +114,6 @@ jobs:
         env:
           GOOGLE_SPREADSHEET_ID: ${{ github.event.inputs.google_spreadsheet_id }}
           GOOGLE_SHEET_ID: ${{ github.event.inputs.google_sheet_id }}
-          NEW_SHEET_NAME: ${{ github.event.inputs.new_sheet_name }}
+          NEW_SHEET_NAME: ${{ github.event.inputs.release_tag }}
         run: |
           node copyAndProtectSheet.js

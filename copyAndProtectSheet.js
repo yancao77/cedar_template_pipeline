@@ -75,7 +75,9 @@ async function copyAndProtectSheet() {
                 description: 'Read-only copy',
                 warningOnly: false,
                 editors: {
-                  users: ['ycao77@stanford.edu', 'matthew.horridge@stanford.edu'], 
+                  users: ['bmir-radx@radx-template-pipeline.iam.gserviceaccount.com',
+                    'ycao77@stanford.edu', 
+                    'matthew.horridge@stanford.edu'], 
                   groups: [], 
                   domainUsersCanEdit: false,
                 }
